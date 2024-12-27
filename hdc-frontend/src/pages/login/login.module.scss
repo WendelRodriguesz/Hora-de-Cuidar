@@ -1,0 +1,85 @@
+@import "../../styles/variables";
+.container {
+  display: flex;
+  height: 100vh;
+  font-family: 'Roboto', sans-serif;
+
+  .left {
+    flex: 1;
+    background-color: $light-blue; // Variável para azul claro
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .logo {
+      font-size: 2.5rem;
+      color: $dark-blue; // Variável para azul escuro
+      text-align: center;
+
+      .highlight {
+        color: $accent-blue; // Cor de destaque
+      }
+    }
+  }
+
+  .right {
+    flex: 1;
+    background-color: $background-blue; // Fundo para o lado direito
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+
+    .welcome {
+      font-size: 2rem;
+      color: $dark-blue;
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: $text-gray;
+      margin-bottom: 2rem;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 300px;
+
+      .input {
+        height: 40px;
+        border: 1px solid $accent-blue;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        padding: 0 10px;
+        font-size: 1rem;
+        color: $dark-blue;
+      }
+
+      .forgotPassword {
+        font-size: 0.9rem;
+        color: $accent-blue;
+        text-align: right;
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+      }
+
+      .button {
+        background-color: $dark-blue;
+        color: $white;
+        border: none;
+        height: 40px;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+
+        &:hover {
+          background-color: darken($dark-blue, 10%);
+        }
+      }
+    }
+  }
+}
