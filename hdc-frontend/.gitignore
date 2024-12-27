@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependências
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Arquivos de ambiente
+.env
+.env.* # Variantes como .env.development, .env.production
+
+# Cache
+.cache/
+.vite/
+*.tmp
+*.swp
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json # Permitir compartilhamento de extensões no time
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Arquivos do TypeScript
+*.tsbuildinfo
+
+# Configurações específicas do sistema operacional
+Thumbs.db
