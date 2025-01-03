@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import styles from './LoginForm.module.scss';
+import { useNavigate } from 'react-router-dom';
+import styles from './RecoveryForm.module.scss';
 import Button from '../Button/Button';
 import InputField from '../InputField/InputField';
 
-const LoginForm: React.FC = () => {
+const RecoveryForm: React.FC = () => {
   const [cpf, setCpf] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -42,14 +43,14 @@ const LoginForm: React.FC = () => {
         localStorage.removeItem('rememberMe');
       }
 
-      navigate('/dashboard');
+      navigate('/login');
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
+      console.error('Erro ao fazer recovery:', error);
     }
   };
 
   return (
-    <form className={styles['login-form']} onSubmit={handleSubmit}>
+    <form className={styles['recovery-form']} onSubmit={handleSubmit}>
       <InputField
         type="cpf"
         id="cpf"
@@ -60,37 +61,26 @@ const LoginForm: React.FC = () => {
       />
 
       <InputField
+        type="email"
+        id="email"
+        placeholder="Digite seu email"
+        label="Email*"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <InputField
         type="password"
         id="password"
-        placeholder="Digite sua senha"
-        label="Senha*"
+        placeholder="Digite sua nova senha"
+        label="Nova senha*"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <div className={styles['form-options']}>
-          <Link to="recoverypassword" className={styles['forgot-password']}>
-            Esqueci minha senha
-          </Link>
-          
-        <div className={styles['remember-me']}>
-          <input
-            type="checkbox"
-            id="remember"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-          />
-          <label htmlFor="remember">Lembre de mim</label>
-        </div>
-      </div>
 
-      <Button type="submit">Fazer Login</Button>
-      <div className={styles["registerNow"]}>
-        Não tem conta? <Link to="/registerNow" className={styles['forgot-password']}>
-          Registrar-se
-        </Link>
-      </div>
+      <Button type="submit">Recuperar senha</Button>
     </form>
   );
 };
 
-export default LoginForm;
+export default RecoveryForm;
