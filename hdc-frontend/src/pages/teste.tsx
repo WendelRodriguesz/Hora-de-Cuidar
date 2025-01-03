@@ -1,11 +1,11 @@
 import React from "react";
 import styles from "./teste.module.scss";
-import LoginForm from "../components/LoginForm/LoginForm";
+import Sidebar from "../components/Professional/sideBar/sideBar";
 
 const Teste: React.FC = () => {
   return (
     <div className={styles.container}>
-    <LoginForm/>
+      <Sidebar/>
     </div>
   );
 };
