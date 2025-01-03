@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import styles from './LoginForm.module.scss'; // Mudança para SCSS
-// import api from '../../api';
-// import { toast } from 'react-toastify';
-
+import styles from './LoginForm.module.scss';
 import Button from '../Button/Button';
 import InputField from '../InputField/InputField';
 
 const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState<string>(''); // Tipagem adicionada
-  const [password, setPassword] = useState<string>(''); // Tipagem adicionada
-  const [rememberMe, setRememberMe] = useState<boolean>(false); // Tipagem adicionada
+  const [cpf, setCpf] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('email') || sessionStorage.getItem('email');
+    const savedCpf = localStorage.getItem('cpf') || sessionStorage.getItem('cpf');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
 
-    if (savedEmail) {
-      setEmail(savedEmail);
+    if (savedCpf) {
+      setCpf(savedCpf);
       setRememberMe(savedRememberMe);
     } else {
       setRememberMe(false);
@@ -29,43 +26,37 @@ const LoginForm: React.FC = () => {
     event.preventDefault();
 
     try {
-      const response = await api.post('/user/login', { email, password });
+      // Simulando chamada API - remova esse comentário ao integrar com a API real
+      const response = { data: { token: 'fakeToken', user: { name: 'Test User' } } };
       const { token, user } = response.data;
 
       if (rememberMe) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('email', email);
+        localStorage.setItem('cpf', cpf);
         localStorage.setItem('rememberMe', 'true');
       } else {
         sessionStorage.setItem('token', token);
         sessionStorage.setItem('user', JSON.stringify(user));
-        sessionStorage.setItem('email', email);
+        sessionStorage.setItem('cpf', cpf);
         localStorage.removeItem('rememberMe');
       }
 
-      toast.success('Login realizado com sucesso!', {
-        position: 'top-right',
-      });
-
-      navigate('/AdminHome');
-    } catch (error: any) {
+      navigate('/dashboard');
+    } catch (error) {
       console.error('Erro ao fazer login:', error);
-      toast.error('Falha no login. Verifique suas credenciais.', {
-        position: 'top-right',
-      });
     }
   };
 
   return (
     <form className={styles['login-form']} onSubmit={handleSubmit}>
       <InputField
-        type="email"
-        id="email"
-        placeholder="Digite seu email"
-        label="Email*"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        type="cpf"
+        id="cpf"
+        placeholder="Digite seu cpf"
+        label="Cpf*"
+        value={cpf}
+        onChange={(e) => setCpf(e.target.value)}
       />
 
       <InputField
@@ -76,8 +67,10 @@ const LoginForm: React.FC = () => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-
       <div className={styles['form-options']}>
+          <Link to="recoverypassword" className={styles['forgot-password']}>
+            Esqueci Minha Senha
+          </Link>
         <div className={styles['remember-me']}>
           <input
             type="checkbox"
@@ -87,16 +80,9 @@ const LoginForm: React.FC = () => {
           />
           <label htmlFor="remember">Lembre de mim</label>
         </div>
-        <Link to="#" className={styles['forgot-password']}>
-          Esqueceu a senha?
-        </Link>
       </div>
 
-      <Button type="submit">Entrar</Button>
-
-      <div className={styles['register-link']}>
-        Não possui cadastro? <Link to="SignUp">Registre-se</Link>
-      </div>
+      <Button type="submit">Fazer Login</Button>
     </form>
   );
 };
