@@ -1,17 +1,22 @@
 import React from "react";
 import styles from "./login.module.scss";
+import { useNavigate } from "react-router-dom";
 
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const handleButtonClick = () => {
+    navigate("/patients"); // Navega para "/dashboard"
+  };
+
   return (
     <div className={styles.container}>
       {/* Lado esquerdo com o logo */}
-      <div className={styles.left}>
-        <h1 className={styles.logo}>
-          HORA DE <br />
-          <span className={styles.highlight}>CUIDAR</span>
-        </h1>
-      </div>
+        <div className={styles.left}>
+            <div className={styles.loginimagesection}>
+                <img src={"src/assets/images/logoGrande.png"} alt="HDC Logo" />
+            </div>
+        </div>
 
       {/* Lado direito com o formulário */}
       <div className={styles.right}>
@@ -24,7 +29,7 @@ const Login: React.FC = () => {
           <a href="#" className={styles.forgotPassword}>
             Esqueci Minha Senha
           </a>
-          <button type="submit" className={styles.button}>
+          <button onClick={handleButtonClick} type="submit" className={styles.button}>
             Fazer Login
           </button>
         </form>
