@@ -4,7 +4,7 @@ Este repositório contém o sistema de apoio nutricional **Hora de Cuidar**, uma
 
 ## 🎯 Objetivo
 
-Entregar um MVP funcional até **agosto de 2025**, com foco em **simplicidade, estabilidade e escalabilidade**, viabilizando o registro de refeições, planos alimentares, notificações e acompanhamento nutricional.
+Entregar um MVP funcional até **dezembro de 2025**, com foco em **simplicidade, estabilidade e escalabilidade**, viabilizando o registro de refeições, planos alimentares, notificações e acompanhamento nutricional.
 
 ## 🚀 Tecnologias
 
