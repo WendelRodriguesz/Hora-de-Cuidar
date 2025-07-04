@@ -1,0 +1,42 @@
+@use "sass:color";
+
+.container {
+  display: flex;
+  height: 100vh;
+  font-family: 'Roboto', sans-serif;
+
+  .left {
+    flex: 1;
+    background-color: rgb(212, 248, 252); // Azul claro
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .loginimagesection img {
+      min-width: 60%;
+      height: auto;
+    }
+  }
+
+  .right {
+    flex: 1;
+    background-color: rgb(229, 248, 249); // Fundo para o lado direito
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+
+    .welcome {
+      font-size: 3rem;
+      color: rgb(0, 30, 38); // Azul escuro
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: rgb(102, 102, 102); // Cinza texto
+      margin-bottom: 2rem;
+    }
+  }
+}

@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PACIENTE
+  PROFISSIONAL
+  ADMIN
+}
+
+enum Status {
+  ativo
+  inativo
+  aguardando_aprovacao
+}
+
+model Usuario {
+  id         String   @id @default(uuid()) @db.Uuid
+  nome       String   @db.VarChar(255)
+  email      String   @unique @db.VarChar(255)
+  senha      String
+  telefone   String?  @db.VarChar(20)
+  data_nasc  DateTime
+  sexo       String   @db.VarChar(1)
+  cpf        String   @unique @db.VarChar(14)
+  role       Role
+  endereco_id String?  @db.Uuid
+  endereco   Endereco? @relation(fields: [endereco_id], references: [id])
+
+  profissional  Profissional?
+  paciente      Paciente?
+  administrador Administrador?
+
+  anexos      Anexo[]
+  comentarios Comentario[]
+  
+  solicitacoes ProfissionalSolicitacao[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@map("usuarios")
+}
+
+model Administrador {
+  id        String   @id @default(uuid()) @db.Uuid
+  usuario_id String   @unique @db.Uuid
+  usuario   Usuario  @relation(fields: [usuario_id], references: [id])
+  
+  solicitacoes ProfissionalSolicitacao[]
+
+  @@map("administradores")
+}
+
+model ProfissionalSolicitacao {
+  id              String   @id @default(uuid()) @db.Uuid
+  nome            String   @db.VarChar(255)
+  area_atuacao    String
+  email           String   @db.VarChar(255)
+  telefone        String   @db.VarChar(20)
+  documento_url   String
+  status          Status   @default(aguardando_aprovacao)
+  administrador_id String?  @db.Uuid
+  administrador   Administrador? @relation(fields: [administrador_id], references: [id])
+  usuario_id       String?  @db.Uuid
+  usuario         Usuario? @relation(fields: [usuario_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("solicitacoes_profissional")
+}
+
+model Profissional {
+  id           String   @id @default(uuid()) @db.Uuid
+  usuario_id    String   @unique @db.Uuid
+  usuario      Usuario  @relation(fields: [usuario_id], references: [id])
+  area_atuacao String
+  status       Status
+  codigo       String   @db.VarChar(20)
+
+  planos_alimentares PlanoAlimentar[]
+  consultas         Consulta[]
+
+  @@map("profissionais")
+}
+
+model Paciente {
+  id        String   @id @default(uuid()) @db.Uuid
+  usuario_id String   @unique @db.Uuid
+  usuario   Usuario  @relation(fields: [usuario_id], references: [id])
+  prontuario String?
+
+  consultas   Consulta[]
+  afericoes   Afericao[]
+  planos      PlanoAlimentar[]
+  diagnosticos Diagnostico[]
+
+  @@map("pacientes")
+}
+
+model Diagnostico {
+  id         String   @id @default(uuid()) @db.Uuid
+  paciente_id String   @db.Uuid
+  tipo       String   @db.VarChar(10) // 'confirmado' ou 'suspeito'
+  doenca     String
+  descricao  String?
+  data       DateTime @default(now())
+  
+  paciente   Paciente @relation(fields: [paciente_id], references: [id])
+  
+  @@map("diagnosticos")
+}
+
+model Afericao {
+  id         String   @id @default(uuid()) @db.Uuid
+  paciente_id String   @db.Uuid
+  paciente   Paciente @relation(fields: [paciente_id], references: [id])
+  tipo       String   @db.VarChar(50)
+  valor      String
+  data       DateTime @default(now())
+
+  @@map("afericoes")
+}
+
+model PlanoAlimentar {
+  id             String   @id @default(uuid()) @db.Uuid
+  profissional_id String   @db.Uuid
+  paciente_id     String   @db.Uuid
+  status         Status   @default(ativo)
+  objetivo       String?
+
+  profissional   Profissional @relation(fields: [profissional_id], references: [id])
+  paciente       Paciente     @relation(fields: [paciente_id], references: [id])
+  refeicoes      Refeicao[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("planos_alimentares")
+}
+
+model Refeicao {
+  id         String   @id @default(uuid()) @db.Uuid
+  nome       String   @db.VarChar(100)
+  horario    String
+  observacao String?  @db.Text
+  calorias   Int?
+  proteinas  Decimal? @db.Decimal(5,2)
+  carboidratos Decimal? @db.Decimal(5,2)
+  gorduras   Decimal? @db.Decimal(5,2)
+
+  plano_id    String   @db.Uuid
+  plano      PlanoAlimentar @relation(fields: [plano_id], references: [id])
+  alimentos  AlimentoRefeicao[]
+
+  @@map("refeicoes")
+}
+
+model Alimento {
+  id         String   @id @default(uuid()) @db.Uuid
+  nome       String   @db.VarChar(100)
+  unidade    String   @db.VarChar(20)
+  
+  refeicoes AlimentoRefeicao[]
+
+  @@map("alimentos")
+}
+
+model AlimentoRefeicao {
+  id          String   @id @default(uuid()) @db.Uuid
+  alimento_id  String   @db.Uuid
+  refeicao_id  String   @db.Uuid
+  quantidade  Decimal  @db.Decimal(7,2)
+
+  alimento    Alimento @relation(fields: [alimento_id], references: [id])
+  refeicao    Refeicao @relation(fields: [refeicao_id], references: [id])
+
+  @@map("alimentos_refeicao")
+}
+
+model Consulta {
+  id             String       @id @default(uuid()) @db.Uuid
+  data           DateTime
+  paciente_id     String       @db.Uuid
+  profissional_id String       @db.Uuid
+  observacoes    String?      @db.Text
+  paciente       Paciente     @relation(fields: [paciente_id], references: [id])
+  profissional   Profissional @relation(fields: [profissional_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("consultas")
+}
+
+model Anexo {
+  id            String   @id @default(uuid()) @db.Uuid
+  tipo          String   @db.VarChar(50)
+  url_documento String
+  usuario_id     String   @db.Uuid
+  data_upload   DateTime @default(now())
+  usuario       Usuario  @relation(fields: [usuario_id], references: [id])
+
+  @@map("anexos")
+}
+
+model Comentario {
+  id        String   @id @default(uuid()) @db.Uuid
+  conteudo  String   @db.Text
+  usuario_id String   @db.Uuid
+  created_at DateTime @default(now())
+
+  usuario   Usuario  @relation(fields: [usuario_id], references: [id])
+
+  @@map("comentarios")
+}
+
+model Estabelecimento {
+  id          String    @id @default(uuid()) @db.Uuid
+  nome        String    @db.VarChar(255)
+  email       String?   @db.VarChar(255)
+  telefone    String?   @db.VarChar(20)
+  cnpj        String    @unique @db.VarChar(18)
+  cnes        String    @unique @db.VarChar(15)
+  endereco_id  String    @db.Uuid
+  endereco    Endereco  @relation(fields: [endereco_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("estabelecimentos")
+}
+
+model Endereco {
+  id           String    @id @default(uuid()) @db.Uuid
+  rua          String    @db.VarChar(255)
+  numero       String    @db.VarChar(20)
+  cep          String    @db.VarChar(9)
+  complemento  String?   @db.VarChar(100)
+  municipio_id  String    @db.Uuid
+  municipio    Municipio @relation(fields: [municipio_id], references: [id])
+
+  usuarios         Usuario[]
+  estabelecimentos Estabelecimento[]
+
+  @@map("enderecos")
+}
+
+model Municipio {
+  id        String    @id @default(uuid()) @db.Uuid
+  nome      String    @db.VarChar(100)
+  estado_id  String    @db.Uuid
+  estado    Estado    @relation(fields: [estado_id], references: [id])
+
+  enderecos Endereco[]
+
+  @@map("municipios")
+}
+
+model Estado {
+  id        String      @id @default(uuid()) @db.Uuid
+  nome      String      @db.VarChar(50)
+  sigla     String      @db.VarChar(2)
+
+  municipios Municipio[]
+
+  @@map("estados")
+}
