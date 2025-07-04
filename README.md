@@ -1,6 +1,7 @@
 # HDC - Hora de Cuidar
 
 Este repositório contém o sistema de apoio nutricional **Hora de Cuidar**, uma plataforma digital voltada para o autocuidado e o acompanhamento remoto de pessoas com doenças crônicas não transmissíveis (DCNTs), promovendo a autonomia do paciente e a integração com profissionais da saúde.
+Desenvolvida como um monorepo com tecnologias modernas e integração com o Infisical para gerenciamento de variáveis.
 
 ## 🎯 Objetivo
 
@@ -9,27 +10,28 @@ Entregar um MVP funcional até **dezembro de 2025**, com foco em **simplicidade,
 ## 🚀 Tecnologias
 
 - **Monorepo:** Turborepo
-- **Backend:** NestJS, Prisma, PostgreSQL
-- **Frontend:** React com TypeScript
+- **Frontend:** React com TypeScript + Vite
+- **Backend:** NestJS + Prisma
 - **Banco de Dados:** PostgreSQL
 - **Infraestrutura:** Docker, Railway, Vercel
-- **Gerenciamento de variáveis:** Infisical
+- **Segurança:** Infisical (env vars), bcrypt, roles
+- **Outros:** Redis, Adminer
 
-## ⚙️ Pré-requisitos
+## 📦 Pré-requisitos
 
-- Node.js >= 22.15.0
-- npm >= 11.0.0
+- Node.js >= 22
+- npm >= 11
 - Docker e Docker Compose
 - [Infisical CLI](https://infisical.com/docs/cli/overview)
 
-## 📦 Instalação
+## ⚙️ Instalação
 
 ### 1. Clone o repositório
 
 ```
 git clone https://github.com/WendelRodriguesz/Hora-de-Cuidar.git
 cd hora-de-cuidar
-```
+````
 
 ### 2. Instale as dependências
 
@@ -37,100 +39,80 @@ cd hora-de-cuidar
 npm install
 ```
 
-### 3. Suba os serviços com Docker
-
-```
-docker-compose up -d
-```
-
-- PostgreSQL estará disponível na porta `5433`
-- Redis estará disponível na porta `6380`
-- Adminer estará disponível em: [http://localhost:8081](http://localhost:8081)
-
-### 4. Configure e logue no Infisical
+### 3. Configure o Infisical
 
 ```
 infisical login
 ```
 
-### 5. Adicione as variáveis no Infisical (ambiente Development)
-
-| Nome           | Valor                                                                 |
-|----------------|-----------------------------------------------------------------------|
-| DATABASE_URL   | `postgresql://hdc_bd:hdcfiocruz@localhost:5433/hdc?schema=public`     |
-| REDIS_HOST     | `localhost`                                                           |
-| REDIS_PORT     | `6380`                                                                |
-| PORT           | `3000`                                                                |
-
-(Opcional para frontend)
-| VITE_API_URL   | `http://localhost:3000`                                               |
-
----
-
-### 6. Rode o projeto com:
+### 4. Suba os containers
 
 ```
-infisical run --env=dev -- npm run dev
+npm run docker-compose up -d
 ```
 
-ou diretamente:
+Acesse:
 
-```
-npm run dev
-```
+* Adminer: [http://localhost:8081](http://localhost:8081)
+* API: [http://localhost:3000](http://localhost:3000)
+* Web: [http://localhost:5173](http://localhost:5173)
 
 ---
 
 ## 🧪 Desenvolvimento
 
-- Acesse `http://localhost:3000` para testar a API
-- Acesse `http://localhost:5173` para acessar o frontend
-- Acesse `http://localhost:8081` para inspecionar o banco via Adminer
+### Inicie o projeto
+
+```
+npm run dev
+```
+
+### Prisma
+
+```
+npm run db:build
+npm run db:migrate:dev
+```
+
+Prisma Studio:
+
+```
+cd apps/api
+npx prisma studio
+```
 
 ---
 
-## 🔨 Criando novos módulos (NestJS)
+## 🛠 Criando módulos NestJS
 
 ```
 cd apps/api
 npx nest g resource nome-do-modulo
 ```
 
-Os arquivos serão criados em `apps/api/src/modules`.
-
 ---
 
-## 🔧 Migrações Prisma
-
-Dentro de `apps/api`, rode:
-
-```
-npm run db:generate
-npm run db:migrate
-```
-
----
-
-## 📂 Estrutura
+## 📁 Estrutura
 
 ```
 apps/
-  api/        # Backend (NestJS)
-  web/        # Frontend (React + Vite)
-packages/     # Pacotes reutilizáveis (tipos, hooks)
+  api/   # Backend (NestJS)
+  web/   # Frontend (React + Vite)
+packages/
+  ...    # Bibliotecas compartilhadas (tipos, hooks)
 ```
 
 ---
 
-## 📋 Padrão de Commits
+## 📋 Padrão de commits
 
 Adotamos o padrão do [iuricode/padroes-de-commits](https://github.com/iuricode/padroes-de-commits):
 
-- `✨ feat:` nova funcionalidade
-- `🐛 fix:` correção de bug
-- `📚 docs:` documentação
-- `♻️ refactor:` refatoração
-- `🔧 chore:` ajustes de configuração/build
+* `✨ feat:` nova funcionalidade
+* `🐛 fix:` correção de bug
+* `📚 docs:` mudanças em documentação
+* `♻️ refactor:` melhoria no código
+* `🔧 chore:` configurações, builds, etc.
 
 ---
 
