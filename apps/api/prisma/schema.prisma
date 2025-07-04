@@ -20,125 +20,144 @@ enum Status {
 }
 
 model Usuario {
-  id        String   @id @default(uuid()) @db.Uuid
-  nome      String
-  email     String   @unique
-  senha     String
-  telefone  String?
-  dataNasc  DateTime @map("data_nascimento")
-  sexo      String
-  cpf       String   @unique
-  role      Role
-  enderecoId String? @db.Uuid
-  endereco  Endereco? @relation(fields: [enderecoId], references: [id])
+  id         String   @id @default(uuid()) @db.Uuid
+  nome       String   @db.VarChar(255)
+  email      String   @unique @db.VarChar(255)
+  senha      String
+  telefone   String?  @db.VarChar(20)
+  data_nasc  DateTime
+  sexo       String   @db.VarChar(1)
+  cpf        String   @unique @db.VarChar(14)
+  role       Role
+  endereco_id String?  @db.Uuid
+  endereco   Endereco? @relation(fields: [endereco_id], references: [id])
 
   profissional  Profissional?
   paciente      Paciente?
   administrador Administrador?
 
-  anexos       AnexoPaciente[]
-  comentarios  ComentarioPaciente[]
+  anexos      Anexo[]
+  comentarios Comentario[]
+  
+  solicitacoes ProfissionalSolicitacao[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
 
   @@map("usuarios")
 }
 
 model Administrador {
   id        String   @id @default(uuid()) @db.Uuid
-  usuarioId String   @unique @db.Uuid
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
-
-  profissionaisSolicitados ProfissionalSolicitacao[]
+  usuario_id String   @unique @db.Uuid
+  usuario   Usuario  @relation(fields: [usuario_id], references: [id])
+  
+  solicitacoes ProfissionalSolicitacao[]
 
   @@map("administradores")
 }
 
 model ProfissionalSolicitacao {
   id              String   @id @default(uuid()) @db.Uuid
-  nome            String
-  areaAtuacao     String
-  email           String
-  telefone        String
-  documentoUrl    String
-  status          Status  @default(aguardando_aprovacao)
-  administradorId String? @db.Uuid
-  administrador   Administrador? @relation(fields: [administradorId], references: [id])
+  nome            String   @db.VarChar(255)
+  area_atuacao    String
+  email           String   @db.VarChar(255)
+  telefone        String   @db.VarChar(20)
+  documento_url   String
+  status          Status   @default(aguardando_aprovacao)
+  administrador_id String?  @db.Uuid
+  administrador   Administrador? @relation(fields: [administrador_id], references: [id])
+  usuario_id       String?  @db.Uuid
+  usuario         Usuario? @relation(fields: [usuario_id], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("solicitacoes_profissional")
 }
 
 model Profissional {
-  id              String   @id @default(uuid()) @db.Uuid
-  usuarioId       String   @unique @db.Uuid
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
-  areaAtuacao     String
-  status          Status
-  codigo          String
+  id           String   @id @default(uuid()) @db.Uuid
+  usuario_id    String   @unique @db.Uuid
+  usuario      Usuario  @relation(fields: [usuario_id], references: [id])
+  area_atuacao String
+  status       Status
+  codigo       String   @db.VarChar(20)
 
-  planosAlimentares PlanoAlimentar[]
-  consultas         ProfissionalConsulta[]
+  planos_alimentares PlanoAlimentar[]
+  consultas         Consulta[]
 
   @@map("profissionais")
 }
 
 model Paciente {
-  id               String   @id @default(uuid()) @db.Uuid
-  usuarioId        String   @unique @db.Uuid
-  usuario          Usuario  @relation(fields: [usuarioId], references: [id])
-  prontuario       String?
-  doencasConfirmadas String?
-  doencasSuspeitas   String?
+  id        String   @id @default(uuid()) @db.Uuid
+  usuario_id String   @unique @db.Uuid
+  usuario   Usuario  @relation(fields: [usuario_id], references: [id])
+  prontuario String?
 
-  consultas   PacienteConsulta[]
+  consultas   Consulta[]
   afericoes   Afericao[]
   planos      PlanoAlimentar[]
+  diagnosticos Diagnostico[]
 
   @@map("pacientes")
 }
 
-model Afericao {
-  id          String   @id @default(uuid()) @db.Uuid
-  pacienteId  String   @db.Uuid
-  paciente    Paciente @relation(fields: [pacienteId], references: [id])
+model Diagnostico {
+  id         String   @id @default(uuid()) @db.Uuid
+  paciente_id String   @db.Uuid
+  tipo       String   @db.VarChar(10) // 'confirmado' ou 'suspeito'
+  doenca     String
+  descricao  String?
+  data       DateTime @default(now())
+  
+  paciente   Paciente @relation(fields: [paciente_id], references: [id])
+  
+  @@map("diagnosticos")
+}
 
-  tipo        String   // exemplo: "peso", "pressão"
-  valor       String
-  data        DateTime @default(now())
+model Afericao {
+  id         String   @id @default(uuid()) @db.Uuid
+  paciente_id String   @db.Uuid
+  paciente   Paciente @relation(fields: [paciente_id], references: [id])
+  tipo       String   @db.VarChar(50)
+  valor      String
+  data       DateTime @default(now())
 
   @@map("afericoes")
 }
 
-
 model PlanoAlimentar {
   id             String   @id @default(uuid()) @db.Uuid
-  profissionalId String   @db.Uuid
-  pacienteId     String   @db.Uuid
+  profissional_id String   @db.Uuid
+  paciente_id     String   @db.Uuid
   status         Status   @default(ativo)
+  objetivo       String?
 
-  profissional   Profissional @relation(fields: [profissionalId], references: [id])
-  paciente       Paciente     @relation(fields: [pacienteId], references: [id])
+  profissional   Profissional @relation(fields: [profissional_id], references: [id])
+  paciente       Paciente     @relation(fields: [paciente_id], references: [id])
   refeicoes      Refeicao[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("planos_alimentares")
 }
 
 model Refeicao {
   id         String   @id @default(uuid()) @db.Uuid
-  nome       String
+  nome       String   @db.VarChar(100)
   horario    String
-  observacoes String?
+  observacao String?  @db.Text
+  calorias   Int?
+  proteinas  Decimal? @db.Decimal(5,2)
+  carboidratos Decimal? @db.Decimal(5,2)
+  gorduras   Decimal? @db.Decimal(5,2)
 
-  planoId    String   @db.Uuid
-  plano      PlanoAlimentar @relation(fields: [planoId], references: [id])
+  plano_id    String   @db.Uuid
+  plano      PlanoAlimentar @relation(fields: [plano_id], references: [id])
   alimentos  AlimentoRefeicao[]
 
   @@map("refeicoes")
@@ -146,131 +165,109 @@ model Refeicao {
 
 model Alimento {
   id         String   @id @default(uuid()) @db.Uuid
-  nome       String
-  quantidade String
-  refeicoes  AlimentoRefeicao[]
+  nome       String   @db.VarChar(100)
+  unidade    String   @db.VarChar(20)
+  
+  refeicoes AlimentoRefeicao[]
 
   @@map("alimentos")
 }
 
 model AlimentoRefeicao {
-  id         String   @id @default(uuid()) @db.Uuid
-  alimentoId String   @db.Uuid
-  refeicaoId String   @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  alimento_id  String   @db.Uuid
+  refeicao_id  String   @db.Uuid
+  quantidade  Decimal  @db.Decimal(7,2)
 
-  alimento   Alimento @relation(fields: [alimentoId], references: [id])
-  refeicao   Refeicao @relation(fields: [refeicaoId], references: [id])
+  alimento    Alimento @relation(fields: [alimento_id], references: [id])
+  refeicao    Refeicao @relation(fields: [refeicao_id], references: [id])
 
   @@map("alimentos_refeicao")
 }
 
 model Consulta {
-  id        String   @id @default(uuid()) @db.Uuid
-  data      DateTime
-  paciente  PacienteConsulta[]
-  prof      ProfissionalConsulta[]
+  id             String       @id @default(uuid()) @db.Uuid
+  data           DateTime
+  paciente_id     String       @db.Uuid
+  profissional_id String       @db.Uuid
+  observacoes    String?      @db.Text
+  paciente       Paciente     @relation(fields: [paciente_id], references: [id])
+  profissional   Profissional @relation(fields: [profissional_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("consultas")
 }
 
-model PacienteConsulta {
-  id          String   @id @default(uuid()) @db.Uuid
-  pacienteId  String   @db.Uuid
-  consultaId  String   @db.Uuid
+model Anexo {
+  id            String   @id @default(uuid()) @db.Uuid
+  tipo          String   @db.VarChar(50)
+  url_documento String
+  usuario_id     String   @db.Uuid
+  data_upload   DateTime @default(now())
+  usuario       Usuario  @relation(fields: [usuario_id], references: [id])
 
-  paciente    Paciente  @relation(fields: [pacienteId], references: [id])
-  consulta    Consulta  @relation(fields: [consultaId], references: [id])
-
-  @@map("paciente_consulta")
+  @@map("anexos")
 }
 
-model ProfissionalConsulta {
-  id              String   @id @default(uuid()) @db.Uuid
-  profissionalId  String   @db.Uuid
-  consultaId      String   @db.Uuid
-
-  profissional    Profissional @relation(fields: [profissionalId], references: [id])
-  consulta        Consulta     @relation(fields: [consultaId], references: [id])
-
-  @@map("profissional_consulta")
-}
-
-model AnexoPaciente {
-  id           String   @id @default(uuid()) @db.Uuid
-  tipo         String
-  urlDocumento String
-  usuarioId    String   @db.Uuid
-  dataUpload   DateTime @default(now())
-
-  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
-
-  @@map("anexos_pacientes")
-}
-
-model ComentarioPaciente {
+model Comentario {
   id        String   @id @default(uuid()) @db.Uuid
-  conteudo  String
-  usuarioId String   @db.Uuid
+  conteudo  String   @db.Text
+  usuario_id String   @db.Uuid
+  created_at DateTime @default(now())
 
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  usuario   Usuario  @relation(fields: [usuario_id], references: [id])
 
-  @@map("comentarios_pacientes")
+  @@map("comentarios")
 }
 
 model Estabelecimento {
-  id         String   @id @default(uuid()) @db.Uuid
-  nome       String
-  email      String?
-  telefone   String?
-  cnpj       String   @unique
-  cnes       String   @unique
-  enderecoId String   @db.Uuid
-  endereco   Endereco @relation(fields: [enderecoId], references: [id])
+  id          String    @id @default(uuid()) @db.Uuid
+  nome        String    @db.VarChar(255)
+  email       String?   @db.VarChar(255)
+  telefone    String?   @db.VarChar(20)
+  cnpj        String    @unique @db.VarChar(18)
+  cnes        String    @unique @db.VarChar(15)
+  endereco_id  String    @db.Uuid
+  endereco    Endereco  @relation(fields: [endereco_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("estabelecimentos")
 }
 
 model Endereco {
-  id         String   @id @default(uuid()) @db.Uuid
-  rua        String
-  numero     String
-  cep        String
-  complemento String?
-  bairroId   String
-  bairro     Bairro @relation(fields: [bairroId], references: [id])
+  id           String    @id @default(uuid()) @db.Uuid
+  rua          String    @db.VarChar(255)
+  numero       String    @db.VarChar(20)
+  cep          String    @db.VarChar(9)
+  complemento  String?   @db.VarChar(100)
+  municipio_id  String    @db.Uuid
+  municipio    Municipio @relation(fields: [municipio_id], references: [id])
 
-  usuarios       Usuario[]
+  usuarios         Usuario[]
   estabelecimentos Estabelecimento[]
 
   @@map("enderecos")
 }
 
-model Bairro {
-  id          String   @id @default(uuid()) @db.Uuid
-  nome        String
-  municipioId String
-  municipio   Municipio @relation(fields: [municipioId], references: [id])
-
-  enderecos   Endereco[]
-
-  @@map("bairros")
-}
-
 model Municipio {
-  id        String   @id @default(uuid()) @db.Uuid
-  nome      String
-  estadoId  String
-  estado    Estado @relation(fields: [estadoId], references: [id])
+  id        String    @id @default(uuid()) @db.Uuid
+  nome      String    @db.VarChar(100)
+  estado_id  String    @db.Uuid
+  estado    Estado    @relation(fields: [estado_id], references: [id])
 
-  bairros   Bairro[]
+  enderecos Endereco[]
 
   @@map("municipios")
 }
 
 model Estado {
-  id     String   @id @default(uuid()) @db.Uuid
-  nome   String
-  sigla  String
+  id        String      @id @default(uuid()) @db.Uuid
+  nome      String      @db.VarChar(50)
+  sigla     String      @db.VarChar(2)
 
   municipios Municipio[]
 
