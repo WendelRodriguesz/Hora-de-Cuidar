@@ -2,7 +2,10 @@
   "name": "projeto-hdc",
   "private": true,
   "packageManager": "npm@11.4.2",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "cross-env INFISICAL_DISABLE_UPDATE_CHECK=true infisical run -- turbo run dev --env-mode loose --no-daemon",
     "build": "turbo run build",
@@ -14,13 +17,12 @@
     "docker-compose": "infisical run -- docker compose"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.8.0",
-    "@types/faker": "^6.6.8",
-    "turbo": "^2.5.4",
+    "@faker-js/faker": "^9.9.0",
     "cross-env": "^7.0.3",
+    "npm-force-resolutions": "^0.0.10",
     "prettier": "^3.5.3",
-    "typescript": "5.8.2",
-    "npm-force-resolutions": "^0.0.10"
+    "turbo": "^2.5.4",
+    "typescript": "5.8.2"
   },
   "resolutions": {
     "express": "4.19.2",
