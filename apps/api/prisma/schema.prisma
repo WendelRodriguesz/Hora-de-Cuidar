@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
+enum Cargo {
   PACIENTE
   PROFISSIONAL
   ADMIN
@@ -27,8 +27,8 @@ model Usuario {
   telefone   String?  @db.VarChar(20)
   data_nasc  DateTime
   sexo       String   @db.VarChar(1)
-  cpf        String   @unique @db.VarChar(14)
-  role       Role
+  cpf        String   @unique @db.VarChar(11)
+  cargo       Cargo
   endereco_id String?  @db.Uuid
   endereco   Endereco? @relation(fields: [endereco_id], references: [id])
 

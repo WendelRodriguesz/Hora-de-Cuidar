@@ -11,7 +11,7 @@
     "build": "turbo run build",
     "db:build": "cross-env INFISICAL_DISABLE_UPDATE_CHECK=true infisical run -- turbo run db:build --env-mode loose --no-daemon",
     "db:migrate:dev": "cross-env INFISICAL_DISABLE_UPDATE_CHECK=true infisical run -- turbo run db:migrate:dev --env-mode loose --no-daemon",
-     "db:reset": "cross-env INFISICAL_DISABLE_UPDATE_CHECK=true infisical run -- prisma migrate reset --schema=./apps/api/prisma/schema.prisma",
+    "db:reset": "cross-env INFISICAL_DISABLE_UPDATE_CHECK=true infisical run -- prisma migrate reset --schema=./apps/api/prisma/schema.prisma",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
@@ -38,6 +38,8 @@
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/swagger": "^11.2.0",
     "cache-manager": "^6.4.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "ioredis": "^5.6.1"
   }
 }

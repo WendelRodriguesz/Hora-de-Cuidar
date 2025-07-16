@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('PACIENTE', 'PROFISSIONAL', 'ADMIN');
+CREATE TYPE "Cargo" AS ENUM ('PACIENTE', 'PROFISSIONAL', 'ADMIN');
 
 -- CreateEnum
 CREATE TYPE "Status" AS ENUM ('ativo', 'inativo', 'aguardando_aprovacao');
@@ -13,8 +13,8 @@ CREATE TABLE "usuarios" (
     "telefone" VARCHAR(20),
     "data_nasc" TIMESTAMP(3) NOT NULL,
     "sexo" VARCHAR(1) NOT NULL,
-    "cpf" VARCHAR(14) NOT NULL,
-    "role" "Role" NOT NULL,
+    "cpf" VARCHAR(11) NOT NULL,
+    "cargo" "Cargo" NOT NULL,
     "endereco_id" UUID,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
