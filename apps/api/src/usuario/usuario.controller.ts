@@ -28,31 +28,32 @@ export class UsuarioController {
   }
 
   @Get()
-  findAll(@Query() pag: PaginacaoDto, @Query('cargo') cargo?: Cargo) {
-    return this.usuarioService.findAll(pag, cargo);
+  findAll(@Query() pag: PaginacaoDto, @Query('cargo') cargo?: Cargo, @Query('incluirDeletados') incluirDeletados?: boolean) {
+    return this.usuarioService.findAll(pag, cargo, incluirDeletados);
   }
 
   @Get(':id')
-  findById(@Param('id') id: string) {
-    return this.usuarioService.findById(id);
+  findById(@Param('id') id: string, @Query('incluirDeletados') incluirDeletados?: boolean) {
+    return this.usuarioService.findById(id, incluirDeletados);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
-    return this.usuarioService.update(id, updateUsuarioDto);
+  update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto, @Query('incluirDeletados') incluirDeletados?: boolean) {
+    return this.usuarioService.update(id, updateUsuarioDto, incluirDeletados);
   }
 
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.usuarioService.delete(id);
   }
+
   @Get('cpf/:cpf')
-  findByCpf(@Param('cpf') cpf: string) {
-    return this.usuarioService.findByCpf(cpf);
+  findByCpf(@Param('cpf') cpf: string, @Query('incluirDeletados') incluirDeletados?: boolean) {
+    return this.usuarioService.findByCpf(cpf, incluirDeletados);
   }
 
   @Get('email/:email')
-  findByEmail(@Param('email') email: string) {
-    return this.usuarioService.findByEmail(email);
+  findByEmail(@Param('email') email: string, @Query('incluirDeletados') incluirDeletados?: boolean) {
+    return this.usuarioService.findByEmail(email, incluirDeletados);
   }
 }

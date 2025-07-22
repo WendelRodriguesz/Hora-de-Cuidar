@@ -9,17 +9,21 @@ export class UsuarioRepository implements IUsuarioRepository {
   create(data: Prisma.UsuarioCreateInput) {
     return this.prismaService.usuario.create({ data });
   }
-  findById(id: string) {
-    return this.prismaService.usuario.findUnique({ where: { id } });
+  findById(id: string, incluirDeletados: boolean) {
+    const where = incluirDeletados ? { id } : { id, deleted_at: null }
+    return this.prismaService.usuario.findUnique({ where });
   }
-  findByCpf(cpf: string) {
-    return this.prismaService.usuario.findUnique({ where: { cpf } });
+  findByCpf(cpf: string, incluirDeletados: boolean) {
+    const where = incluirDeletados ? { cpf } : { cpf, deleted_at: null }
+    return this.prismaService.usuario.findUnique({ where });
   }
-  findByEmail(email: string) {
-    return this.prismaService.usuario.findUnique({ where: { email } });
+  findByEmail(email: string, incluirDeletados: boolean) {
+    const where = incluirDeletados ? { email } : { email, deleted_at: null }
+    return this.prismaService.usuario.findUnique({ where });
   }
-  update(id: string, data: Prisma.UsuarioUpdateInput) {
-    return this.prismaService.usuario.update({ where: { id }, data });
+  update(id: string, incluirDeletados: boolean, data: Prisma.UsuarioUpdateInput) {
+    const where = incluirDeletados ? { id } : { id, deleted_at: null }
+    return this.prismaService.usuario.update({ where, data });
   }
   async delete(id: string) {
     return this.prismaService.usuario.update({
@@ -36,8 +40,8 @@ export class UsuarioRepository implements IUsuarioRepository {
     skip: number;
     take: number;
     cargo?: Cargo;
-  }) {
-    const where = { deleted_at: null, ...(cargo && { cargo }) };
+  }, incluirDeletados: boolean) {
+    const where = incluirDeletados ? { ...(cargo && { cargo }) } : { deleted_at: null, ...(cargo && { cargo }) };
     const [total, items] = await Promise.all([
       this.prismaService.usuario.count({ where }),
       this.prismaService.usuario.findMany({

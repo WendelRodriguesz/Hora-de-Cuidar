@@ -162,7 +162,7 @@ describe('UsuarioService', () => {
       const mocks = [UsuarioMock(), UsuarioMock()];
       usuarioRepository.findAll.mockResolvedValueOnce({ items: mocks, total: 2 });
 
-      const result = await usuarioService.findAll(pag, undefined);
+      const result = await usuarioService.findAll(pag, undefined, false);
 
       expect(result.items).toEqual(mocks);
       expect(result.total).toBe(2);
@@ -170,7 +170,7 @@ describe('UsuarioService', () => {
         skip: 0,
         take: 2,
         cargo: undefined,
-      });
+      }, false);
     });
   });
 });
