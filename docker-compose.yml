@@ -9,11 +9,13 @@ services:
       - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: "always"
 
   redis:
     image: redis:7-alpine
     ports:
       - '6380:6379'
+    restart: "always"
 
   adminer:
     image: adminer
