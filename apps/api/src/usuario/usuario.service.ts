@@ -59,7 +59,7 @@ export class UsuarioService {
   }
 
   async update(id: string, updateUsuarioDto: UpdateUsuarioDto, incluirDeletados: boolean = false) {
-    const usuario = await this.repo.findById(id,true);
+    const usuario = await this.repo.findById(id,incluirDeletados);
     if (!usuario) {
       throw new NotFoundException('Usuário não encontrado');
     }
