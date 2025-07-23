@@ -11,5 +11,6 @@ import { USUARIO_SERVICE } from 'src/common/constants';
       useClass: UsuarioService,
     },
   ],
+  exports: [USUARIO_SERVICE],
 })
 export class UsuarioModule {}
