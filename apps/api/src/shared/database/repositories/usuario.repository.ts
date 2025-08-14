@@ -9,18 +9,12 @@ export class UsuarioRepository implements IUsuarioRepository {
   create(data: Prisma.UsuarioCreateInput) {
     return this.prismaService.usuario.create({ data });
   }
-  findById(id: string, incluirDeletados: boolean) {
-    const where = incluirDeletados ? { id } : { id, deleted_at: null }
+
+  findBy(tipo: string, param: string, incluirDeletados: boolean) {
+    const where: any = incluirDeletados ? { [tipo]: param } : { [tipo]: param, deleted_at: null };
     return this.prismaService.usuario.findUnique({ where });
   }
-  findByCpf(cpf: string, incluirDeletados: boolean) {
-    const where = incluirDeletados ? { cpf } : { cpf, deleted_at: null }
-    return this.prismaService.usuario.findUnique({ where });
-  }
-  findByEmail(email: string, incluirDeletados: boolean) {
-    const where = incluirDeletados ? { email } : { email, deleted_at: null }
-    return this.prismaService.usuario.findUnique({ where });
-  }
+
   update(id: string, incluirDeletados: boolean, data: Prisma.UsuarioUpdateInput) {
     const where = incluirDeletados ? { id } : { id, deleted_at: null }
     return this.prismaService.usuario.update({ where, data });
@@ -29,6 +23,13 @@ export class UsuarioRepository implements IUsuarioRepository {
     return this.prismaService.usuario.update({
       where: { id },
       data: { deleted_at: new Date() },
+    });
+  }
+
+  async recuperar(id: string) {
+    return this.prismaService.usuario.update({
+      where: { id },
+      data: { deleted_at: null },
     });
   }
 
