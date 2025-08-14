@@ -1,29 +1,36 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UsuarioService } from '../usuario/usuario.service';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { USUARIO_SERVICE } from 'src/common/constants';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { IUsuarioRepository } from 'src/shared/database/repositories/interface/usuario-repository.interface';
+import { USUARIO_REPOSITORY } from 'src/common/constants';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(USUARIO_SERVICE) private userService: UsuarioService,
-    private jwtService: JwtService,
-  ){}
+    @Inject(USUARIO_REPOSITORY) private readonly usuarioRepo: IUsuarioRepository,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  async validarUsuario(login: CreateAuthDto): Promise<any> {
-    const usuario = await this.userService.findBy("email",login.email);
-    if (usuario && await bcrypt.compare(login.senha, usuario.senha)) {
-      const {senha, ...result} = usuario;
-      return result;
+  async validarUsuario(login: CreateAuthDto) {
+    const usuario = await this.usuarioRepo.findUnique(
+      { email: login.email },
+      { includePassword: true }
+    );
+
+    if (!usuario || usuario.deleted_at || !login.senha || !(usuario as any).senha) {
+      throw new UnauthorizedException('Credenciais inválidas');
     }
-    return null;
+
+    const ok = await bcrypt.compare(login.senha, (usuario as any).senha);
+    if (!ok) throw new UnauthorizedException('Credenciais inválidas');
+
+    const { senha, ...safe } = usuario as any;
+    return safe;
   }
 
   async login(usuario: any) {
     const payload = { sub: usuario.id, email: usuario.email };
     return { access_token: this.jwtService.sign(payload) };
   }
-
 }

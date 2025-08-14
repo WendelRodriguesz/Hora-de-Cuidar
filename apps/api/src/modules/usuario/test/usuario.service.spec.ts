@@ -7,38 +7,42 @@ import { UpdateUsuarioDto } from '../dto/update-usuario.dto';
 import { PaginacaoDto } from 'src/common/dto/pagination.dto';
 import { UsuarioMock } from 'test/shared/types';
 import {
+  BadRequestException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 
+// Dica: esse mock deve refletir a NOVA interface
 describe('UsuarioService', () => {
-  let usuarioRepository: jest.Mocked<IUsuarioRepository>;
-  let usuarioService: UsuarioService;
+  let repo: jest.Mocked<IUsuarioRepository>;
+  let service: UsuarioService;
 
   beforeAll(async () => {
-    usuarioRepository = {
+    repo = {
       create: jest.fn(),
-      findBy: jest.fn(),
+      findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      recuperar: jest.fn(),
       findAll: jest.fn(),
     } as unknown as jest.Mocked<IUsuarioRepository>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsuarioService,
-        { provide: USUARIO_REPOSITORY, useValue: usuarioRepository },
+        { provide: USUARIO_REPOSITORY, useValue: repo },
       ],
     }).compile();
 
-    usuarioService = module.get<UsuarioService>(UsuarioService);
+    service = module.get<UsuarioService>(UsuarioService);
   });
 
   it('deve ser definido', () => {
-    expect(usuarioService).toBeDefined();
+    expect(service).toBeDefined();
   });
 
   describe('create', () => {
-    it('deve criar usuário com senha hasheada', async () => {
+    it('deve criar usuário (senha hasheada enviada ao repo)', async () => {
       const dto: CreateUsuarioDto = {
         nome: 'Test',
         email: 't@test.com',
@@ -51,59 +55,53 @@ describe('UsuarioService', () => {
         endereco_id: 'endereco-id',
       };
       const mock = UsuarioMock();
-      usuarioRepository.create.mockResolvedValueOnce({ ...mock });
+      repo.create.mockResolvedValueOnce({ ...mock });
 
-      const result = await usuarioService.create(dto);
+      const result = await service.create(dto);
 
-      expect(usuarioRepository.create).toHaveBeenCalled();
-      expect(typeof (result as any).senha).toBe('string');
+      expect(repo.create).toHaveBeenCalled();
+      // sanity check: senha enviada ao repo != plain
+      const args = repo.create.mock.calls[0][0] as any;
+      expect(args.senha).not.toEqual('plain');
+      expect(result).toEqual(mock);
     });
 
     it('deve propagar erro se create falhar', async () => {
-      const dto = {} as CreateUsuarioDto;
-      usuarioRepository.create.mockRejectedValueOnce(new Error());
-
-      await expect(usuarioService.create(dto)).rejects.toThrowError();
+      repo.create.mockRejectedValueOnce(new Error());
+      await expect(service.create({} as any)).rejects.toThrowError();
     });
   });
 
-  describe('findById, findByCpf, findByEmail', () => {
+  describe('findById / findByCpf / findByEmail', () => {
     const mock = UsuarioMock();
 
-    it('deve retornar por ID', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(mock);
-      expect(await usuarioService.findBy("id",mock.id)).toEqual(mock);
+    it('findById: retorna quando existe e não foi deletado', async () => {
+      repo.findUnique.mockResolvedValueOnce(mock);
+      await expect(service.findById(mock.id)).resolves.toEqual(mock);
+      expect(repo.findUnique).toHaveBeenCalledWith({ id: mock.id });
     });
 
-    it('deve lançar NotFoundException se ID não existir', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(null);
-      await expect(usuarioService.findBy("id",'id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+    it('findById: NotFound quando não existe', async () => {
+      repo.findUnique.mockResolvedValueOnce(null);
+      await expect(service.findById('id')).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('deve retornar por CPF', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(mock);
-      expect(await usuarioService.findBy("cpf",mock.cpf)).toEqual(mock);
+    it('findByCpf: BadRequest se deletado e includeDeleted=false', async () => {
+      const deleted = { ...mock, deleted_at: new Date() };
+      repo.findUnique.mockResolvedValueOnce(deleted);
+      await expect(service.findByCpf(mock.cpf)).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('deve lançar NotFoundException se CPF não existir', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(null);
-      await expect(usuarioService.findBy("cpf",'cpf')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+    it('findByCpf: retorna se deletado com includeDeleted=true', async () => {
+      const deleted = { ...mock, deleted_at: new Date() };
+      repo.findUnique.mockResolvedValueOnce(deleted);
+      await expect(service.findByCpf(mock.cpf, true)).resolves.toEqual(deleted);
+      expect(repo.findUnique).toHaveBeenCalledWith({ cpf: mock.cpf });
     });
 
-    it('deve retornar por EMAIL', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(mock);
-      expect(await usuarioService.findBy("email",mock.email)).toEqual(mock);
-    });
-
-    it('deve lançar NotFoundException se EMAIL não existir', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(null);
-      await expect(usuarioService.findBy("email",'email')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+    it('findByEmail: NotFound quando não existe', async () => {
+      repo.findUnique.mockResolvedValueOnce(null);
+      await expect(service.findByEmail('x@x.com')).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -111,64 +109,86 @@ describe('UsuarioService', () => {
     const mock = UsuarioMock();
     const dto: UpdateUsuarioDto = { nome: 'Novo', cargo: mock.cargo };
 
-    it('deve atualizar usuário existente', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(mock);
-      usuarioRepository.update.mockResolvedValueOnce({ ...mock, nome: dto.nome });
+    it('atualiza quando existe e não está deletado', async () => {
+      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: null });
+      repo.update.mockResolvedValueOnce({ ...mock, nome: dto.nome } as any);
 
-      const result = await usuarioService.update(mock.id, dto);
+      const result = await service.update(mock.id, dto);
       expect(result.nome).toBe(dto.nome);
+      expect(repo.update).toHaveBeenCalledWith(mock.id, dto);
     });
 
-    it('deve lançar NotFoundException se não existir', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(null);
-      await expect(usuarioService.update('id', dto)).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+    it('NotFound quando não existe', async () => {
+      repo.findUnique.mockResolvedValueOnce(null);
+      await expect(service.update('id', dto)).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('deve propagar erro em update', async () => {
-      usuarioRepository.findBy.mockResolvedValueOnce(mock);
-      usuarioRepository.update.mockRejectedValueOnce(
-        new InternalServerErrorException(),
-      );
+    it('propaga erro de update', async () => {
+      repo.findUnique.mockResolvedValueOnce(mock);
+      repo.update.mockRejectedValueOnce(new InternalServerErrorException());
+      await expect(service.update(mock.id, dto)).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
 
-      await expect(usuarioService.update(mock.id, dto)).rejects.toBeInstanceOf(
-        InternalServerErrorException,
-      );
+    it('BadRequest quando usuário está deletado', async () => {
+      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: new Date() });
+      await expect(service.update(mock.id, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 
   describe('delete', () => {
-    it('deve deletar com retorno do repositório', async () => {
+    it('BadRequest se já deletado', async () => {
       const mock = UsuarioMock();
-      usuarioRepository.delete.mockResolvedValueOnce(mock as any);
-      const result = await usuarioService.delete(mock.id);
+      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: new Date() });
+      await expect(service.delete(mock.id)).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('deleta (soft) quando não deletado', async () => {
+      const mock = UsuarioMock();
+      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: null });
+      repo.delete.mockResolvedValueOnce(mock as any);
+      const result = await service.delete(mock.id);
       expect(result).toEqual(mock);
     });
 
-    it('deve propagar erro se delete falhar', async () => {
-      usuarioRepository.delete.mockRejectedValueOnce(new NotFoundException());
-      await expect(usuarioService.delete('id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+    it('propaga erro se delete falhar', async () => {
+      repo.findUnique.mockResolvedValueOnce(UsuarioMock() as any);
+      repo.delete.mockRejectedValueOnce(new NotFoundException());
+      await expect(service.delete('id')).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('recuperar', () => {
+    it('BadRequest se não está deletado', async () => {
+      const mock = UsuarioMock();
+      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: null });
+      await expect(service.recuperar(mock.id)).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('recupera quando está deletado', async () => {
+      const mock = UsuarioMock();
+      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: new Date() });
+      repo.recuperar.mockResolvedValueOnce({ ...mock, deleted_at: null } as any);
+      const result = await service.recuperar(mock.id);
+      expect(result.deleted_at).toBeNull();
     });
   });
 
   describe('findAll', () => {
-    it('deve listar usuários com paginação', async () => {
+    it('lista com paginação e includeDeleted=false por padrão', async () => {
       const pag: PaginacaoDto = { skip: 0, limit: 2, page: 1 };
       const mocks = [UsuarioMock(), UsuarioMock()];
-      usuarioRepository.findAll.mockResolvedValueOnce({ items: mocks, total: 2 });
+      repo.findAll.mockResolvedValueOnce({ items: mocks, total: 2 });
 
-      const result = await usuarioService.findAll(pag, undefined, false);
+      const result = await service.findAll(pag, undefined, false);
 
       expect(result.items).toEqual(mocks);
       expect(result.total).toBe(2);
-      expect(usuarioRepository.findAll).toHaveBeenCalledWith({
+      expect(repo.findAll).toHaveBeenCalledWith({
         skip: 0,
         take: 2,
         cargo: undefined,
-      }, false);
+        includeDeleted: false,
+      });
     });
   });
 });

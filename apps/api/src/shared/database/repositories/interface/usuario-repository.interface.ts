@@ -2,13 +2,21 @@ import { Prisma, Usuario } from '@prisma/client';
 
 export interface IUsuarioRepository {
   create(data: Prisma.UsuarioCreateInput): Promise<Usuario>;
-  findBy(tipo: string, param: string, incluirDeletados: boolean): Promise<Usuario | null>;
-  update(id: string,incluirDeletados: boolean, data: Prisma.UsuarioUpdateInput): Promise<Usuario>;
+  findUnique(
+    where: Prisma.UsuarioWhereUniqueInput,
+    opts?: { includePassword?: boolean }
+  ): Promise<(Omit<Usuario, 'senha'> & Partial<Pick<Usuario, 'senha'>>) | null>;
+  update(
+    id: string,
+    data: Prisma.UsuarioUpdateInput,
+    opts?: { includePassword?: boolean }
+  ): Promise<(Omit<Usuario, 'senha'> & Partial<Pick<Usuario, 'senha'>>) >;
   delete(id: string): Promise<Usuario>;
   recuperar(id: string): Promise<Usuario>;
   findAll(options: {
     skip: number;
     take: number;
     cargo?: string;
-  }, incluirDeletados: boolean): Promise<{ total: number; items: Omit<Usuario, 'senha'>[] }>;
+    includeDeleted?: boolean;
+  }): Promise<{ total: number; items: Omit<Usuario, 'senha'>[] }>;
 }
