@@ -8,6 +8,14 @@ import { usuarioSelect, usuarioComSenhaSelect } from '../selects/usuario.select'
 export class UsuarioRepository implements IUsuarioRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
+  async me(incluirDeletados = false){
+    const user = await this.prismaService.usuario.findFirst({
+      where: { deleted_at: incluirDeletados ? undefined : null },
+      select: usuarioSelect,
+    });
+    return user || null;
+  }
+
   create(data: Prisma.UsuarioCreateInput) {
     return this.prismaService.usuario.create({ data });
   }

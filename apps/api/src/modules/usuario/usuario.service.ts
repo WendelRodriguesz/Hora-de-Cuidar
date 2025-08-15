@@ -9,7 +9,7 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { IUsuarioRepository } from '../../shared/database/repositories/interface/usuario-repository.interface';
 import { hash } from 'bcryptjs';
 import { PaginacaoDto } from '../../common/dto/pagination.dto';
-import { USUARIO_REPOSITORY } from 'src/common/constants';
+import { USUARIO_REPOSITORY } from 'src/common/constants/constants';
 import { format } from 'date-fns';
 import { Prisma } from '@prisma/client';
 
@@ -33,6 +33,14 @@ export class UsuarioService {
       throw new BadRequestException(`Usuário foi deletado em ${quando}`);
     }
     return usuario;
+  }
+
+  async me(incluirDeletados = false) {
+    const user = await this.repo.me(incluirDeletados);
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    return user;
   }
 
   async create(dto: CreateUsuarioDto) {

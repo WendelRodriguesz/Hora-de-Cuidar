@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsuarioService } from '../usuario.service';
-import { USUARIO_REPOSITORY } from 'src/common/constants';
+import { USUARIO_REPOSITORY } from 'src/common/constants/constants';
 import { IUsuarioRepository } from 'src/shared/database/repositories/interface/usuario-repository.interface';
 import { CreateUsuarioDto } from '../dto/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/update-usuario.dto';
@@ -83,13 +83,17 @@ describe('UsuarioService', () => {
 
     it('findById: NotFound quando não existe', async () => {
       repo.findUnique.mockResolvedValueOnce(null);
-      await expect(service.findById('id')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.findById('id')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('findByCpf: BadRequest se deletado e includeDeleted=false', async () => {
       const deleted = { ...mock, deleted_at: new Date() };
       repo.findUnique.mockResolvedValueOnce(deleted);
-      await expect(service.findByCpf(mock.cpf)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.findByCpf(mock.cpf)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('findByCpf: retorna se deletado com includeDeleted=true', async () => {
@@ -101,7 +105,9 @@ describe('UsuarioService', () => {
 
     it('findByEmail: NotFound quando não existe', async () => {
       repo.findUnique.mockResolvedValueOnce(null);
-      await expect(service.findByEmail('x@x.com')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.findByEmail('x@x.com')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 
@@ -120,26 +126,40 @@ describe('UsuarioService', () => {
 
     it('NotFound quando não existe', async () => {
       repo.findUnique.mockResolvedValueOnce(null);
-      await expect(service.update('id', dto)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.update('id', dto)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('propaga erro de update', async () => {
       repo.findUnique.mockResolvedValueOnce(mock);
       repo.update.mockRejectedValueOnce(new InternalServerErrorException());
-      await expect(service.update(mock.id, dto)).rejects.toBeInstanceOf(InternalServerErrorException);
+      await expect(service.update(mock.id, dto)).rejects.toBeInstanceOf(
+        InternalServerErrorException,
+      );
     });
 
     it('BadRequest quando usuário está deletado', async () => {
-      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: new Date() });
-      await expect(service.update(mock.id, dto)).rejects.toBeInstanceOf(BadRequestException);
+      repo.findUnique.mockResolvedValueOnce({
+        ...mock,
+        deleted_at: new Date(),
+      });
+      await expect(service.update(mock.id, dto)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
   });
 
   describe('delete', () => {
     it('BadRequest se já deletado', async () => {
       const mock = UsuarioMock();
-      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: new Date() });
-      await expect(service.delete(mock.id)).rejects.toBeInstanceOf(BadRequestException);
+      repo.findUnique.mockResolvedValueOnce({
+        ...mock,
+        deleted_at: new Date(),
+      });
+      await expect(service.delete(mock.id)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('deleta (soft) quando não deletado', async () => {
@@ -153,7 +173,9 @@ describe('UsuarioService', () => {
     it('propaga erro se delete falhar', async () => {
       repo.findUnique.mockResolvedValueOnce(UsuarioMock() as any);
       repo.delete.mockRejectedValueOnce(new NotFoundException());
-      await expect(service.delete('id')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.delete('id')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 
@@ -161,13 +183,21 @@ describe('UsuarioService', () => {
     it('BadRequest se não está deletado', async () => {
       const mock = UsuarioMock();
       repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: null });
-      await expect(service.recuperar(mock.id)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.recuperar(mock.id)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('recupera quando está deletado', async () => {
       const mock = UsuarioMock();
-      repo.findUnique.mockResolvedValueOnce({ ...mock, deleted_at: new Date() });
-      repo.recuperar.mockResolvedValueOnce({ ...mock, deleted_at: null } as any);
+      repo.findUnique.mockResolvedValueOnce({
+        ...mock,
+        deleted_at: new Date(),
+      });
+      repo.recuperar.mockResolvedValueOnce({
+        ...mock,
+        deleted_at: null,
+      } as any);
       const result = await service.recuperar(mock.id);
       expect(result.deleted_at).toBeNull();
     });
