@@ -35,14 +35,6 @@ export class UsuarioService {
     return usuario;
   }
 
-  async me(incluirDeletados = false) {
-    const user = await this.repo.me(incluirDeletados);
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-    return user;
-  }
-
   async create(dto: CreateUsuarioDto) {
     const senha = await hash(dto.senha, 10);
     return this.repo.create({ ...dto, senha });

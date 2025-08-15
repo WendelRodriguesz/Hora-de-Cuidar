@@ -1,7 +1,6 @@
 import { Prisma, Usuario } from '@prisma/client';
 
 export interface IUsuarioRepository {
-  me(incluirDeletados?: boolean): Promise<Omit<Usuario, 'senha'> | null>;
   create(data: Prisma.UsuarioCreateInput): Promise<Usuario>;
   findUnique(
     where: Prisma.UsuarioWhereUniqueInput,
