@@ -1,31 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '../auth.service';
+import { USUARIO_REPOSITORY } from 'src/common/constants/constants';
+import { IUsuarioRepository } from 'src/shared/database/repositories/interface/usuario-repository.interface';
 import { JwtService } from '@nestjs/jwt';
-import { USUARIO_SERVICE } from 'src/common/constants/constants';
 
 describe('AuthService', () => {
   let service: AuthService;
-
-  const usuariosServiceMock = {
-    findByEmail: jest.fn(),
-    findById: jest.fn(),
-  };
-
-  const jwtServiceMock = {
-    sign: jest.fn().mockReturnValue('fake.jwt.token'),
-    verify: jest.fn(),
-  };
+  let repo: jest.Mocked<IUsuarioRepository>;
+  let jwt: JwtService;
 
   beforeEach(async () => {
+    repo = {
+      findUnique: jest.fn(),
+      recuperar: jest.fn(),
+    } as unknown as jest.Mocked<IUsuarioRepository>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: USUARIO_SERVICE, useValue: usuariosServiceMock },
-        { provide: JwtService, useValue: jwtServiceMock },
+        { provide: USUARIO_REPOSITORY, useValue: repo },
+        JwtService,
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    service = module.get(AuthService);
+    jwt = module.get(JwtService);
   });
 
   it('should be defined', () => {
