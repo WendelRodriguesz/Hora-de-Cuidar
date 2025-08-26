@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.9.0",
+    "@types/passport-local": "^1.0.38",
     "cross-env": "^7.0.3",
     "eslint-plugin-jest": "^29.0.1",
     "npm-force-resolutions": "^0.0.10",
@@ -36,12 +37,21 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/cache-manager": "^3.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/swagger": "^11.2.0",
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
     "cache-manager": "^6.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "date-fns": "^4.1.0",
-    "ioredis": "^5.6.1"
+    "ioredis": "^5.6.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0"
   }
 }

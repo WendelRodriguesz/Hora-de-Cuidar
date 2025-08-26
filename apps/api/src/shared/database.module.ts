@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { UsuarioRepository } from './database/repositories/usuario.repository';
-import { USUARIO_REPOSITORY } from 'src/common/constants';
+import { USUARIO_REPOSITORY } from 'src/common/constants/constants';
 @Global()
 @Module({
   providers: [
