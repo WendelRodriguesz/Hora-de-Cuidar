@@ -156,12 +156,20 @@ export class ProfissionalService {
 
   // ====== Helper ======
   private async getAdministradorIdPorUsuario(usuarioId: string): Promise<string> {
+    // tenta achar
     const admin = await this.adminRepo.findByUsuarioId(usuarioId);
-    if (!admin) {
-      const fallback = await this.adminRepo.findFirst();
-      if (!fallback) throw new InternalServerErrorException('Usuário ADMIN sem registro em administradores.');
-      return fallback.id;
-    }
-    return admin.id;
+    if (admin) return admin.id;
+
+    // auto-provisiona (somente para usuários com cargo=ADMIN!)
+    // como você já validou actor.cargo === 'ADMIN' antes, está seguro aqui
+    // use o Prisma diretamente para garantir atomicidade e simplicidade
+    const criado = await this.prisma.administrador.upsert({
+      where: { usuario_id: usuarioId },
+      update: {},
+      create: { usuario_id: usuarioId },
+      select: { id: true },
+    });
+
+    return criado.id;
   }
 }
