@@ -172,4 +172,68 @@ export class ProfissionalService {
 
     return criado.id;
   }
+
+  async sincronizarProfissionais(
+    dto: { area_atuacao_padrao?: string; status?: 'ativo'|'inativo'|'aguardando_aprovacao' },
+    actor: { id: string; cargo: Cargo },
+  ) {
+    if (actor.cargo !== 'ADMIN') {
+      throw new ForbiddenException('Apenas administradores podem sincronizar profissionais.');
+    }
+
+    const areaPadrao = dto.area_atuacao_padrao?.trim() || 'Geral';
+    const status = (dto.status ?? 'ativo') as 'ativo'|'inativo'|'aguardando_aprovacao';
+
+    const pendentes = await this.usuarioRepo.listProfissionaisPendentes();
+    if (!pendentes.length) return { totalPendentes: 0, criados: [] as string[] };
+
+    const criados: string[] = [];
+
+    await this.prisma.$transaction(async (tx) => {
+      const profRepoTx = this.profissionalRepo.withTx(tx);
+
+      let idx = 0;
+      const base = Date.now();
+      for (const u of pendentes) {
+        const codigo = `P${base}${(idx++).toString().padStart(3, '0')}`;
+        const p = await profRepoTx.create({
+          usuario_id: u.id,
+          area_atuacao: areaPadrao,
+          status,
+          codigo,
+        });
+        criados.push(p.id);
+      }
+    });
+
+    return { totalPendentes: pendentes.length, criados };
+  }
+  async listar(
+    actor: { id: string; cargo: Cargo },
+    q: { page?: number; take?: number; status?: 'ativo'|'inativo'|'aguardando_aprovacao'; area_atuacao?: string },
+  ) {
+    const page = q.page ?? 1;
+    const take = q.take ?? 10;
+    const skip = (page - 1) * take;
+
+    const where: {
+      status?: 'ativo'|'inativo'|'aguardando_aprovacao';
+      usuario_id?: string;
+      area_atuacao_contains?: string;
+    } = {};
+
+    if (q.status) where.status = q.status;
+    if (q.area_atuacao?.trim()) where.area_atuacao_contains = q.area_atuacao.trim();
+
+    if (actor.cargo === 'PROFISSIONAL') {
+      where.usuario_id = actor.id; 
+    }
+
+    const [items, total] = await Promise.all([
+      this.profissionalRepo.list({ skip, take, where, includeUsuario: true }),
+      this.profissionalRepo.count(where),
+    ]);
+
+    return { items, meta: { page, take, total } };
+  }
 }

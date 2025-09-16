@@ -46,6 +46,7 @@ describe('ProfissionalService (repositories + tx)', () => {
   const usuarioRepo = repoMock({
     withTx: jest.fn(),
     findUnique: jest.fn(), // service usa findUnique(where, { includePassword? })
+    listProfissionaisPendentes: jest.fn(), 
   });
 
   const profissionalRepo = repoMock({
@@ -181,4 +182,52 @@ describe('ProfissionalService (repositories + tx)', () => {
       service.aprovar('sol1', {}, { id: 'x', cargo: 'PROFISSIONAL' }),
     ).rejects.toThrow('Apenas administradores podem aprovar.');
   });
+  describe('sincronizarProfissionais', () => {
+    const actorAdmin = { id: 'admin-1', cargo: 'ADMIN' as const };
+  
+    it('bloqueia se actor não é ADMIN', async () => {
+      await expect(
+        service.sincronizarProfissionais({}, { id: 'x', cargo: 'PROFISSIONAL' as const }),
+      ).rejects.toThrow('Apenas administradores podem sincronizar profissionais.');
+    });
+  
+    it('retorna vazio quando não há pendentes', async () => {
+      usuarioRepo.listProfissionaisPendentes.mockResolvedValueOnce([]);
+      const out = await service.sincronizarProfissionais({}, actorAdmin);
+      expect(out).toEqual({ totalPendentes: 0, criados: [] });
+    });
+  
+    it('cria profissionais para usuários pendentes com defaults', async () => {
+      usuarioRepo.listProfissionaisPendentes.mockResolvedValueOnce([{ id: 'u1' }, { id: 'u2' }]);
+      profissionalRepo.create
+        .mockResolvedValueOnce({ id: 'p1', codigo: 'P...', status: 'ativo' })
+        .mockResolvedValueOnce({ id: 'p2', codigo: 'P...', status: 'ativo' });
+  
+      const out = await service.sincronizarProfissionais({}, actorAdmin);
+  
+      expect(profissionalRepo.create).toHaveBeenCalledTimes(2);
+      expect(out.totalPendentes).toBe(2);
+      expect(out.criados).toEqual(['p1', 'p2']);
+    });
+  
+    it('usa status e área padrão do DTO quando informados', async () => {
+      usuarioRepo.listProfissionaisPendentes.mockResolvedValueOnce([{ id: 'u1' }]);
+      profissionalRepo.create.mockResolvedValueOnce({ id: 'p1', codigo: 'P...', status: 'inativo' });
+  
+      await service.sincronizarProfissionais(
+        { status: 'inativo', area_atuacao_padrao: 'Esportiva' },
+        actorAdmin,
+      );
+  
+      expect(profissionalRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          usuario_id: 'u1',
+          area_atuacao: 'Esportiva',
+          status: 'inativo',
+          codigo: expect.any(String),
+        }),
+      );
+    });
+  });
 });
+

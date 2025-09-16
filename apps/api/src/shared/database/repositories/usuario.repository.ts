@@ -60,4 +60,12 @@ export class UsuarioRepository implements IUsuarioRepository {
 
     return { total, items };
   }
+
+  async listProfissionaisPendentes(): Promise<{ id: string }[]> {
+    return this.prismaService.usuario.findMany({
+      where: { cargo: 'PROFISSIONAL', deleted_at: null, profissional: null },
+      select: { id: true },
+      orderBy: { created_at: 'asc' },
+    });
+  }
 }

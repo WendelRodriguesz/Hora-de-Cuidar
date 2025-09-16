@@ -19,4 +19,5 @@ export interface IUsuarioRepository {
     cargo?: string;
     includeDeleted?: boolean;
   }): Promise<{ total: number; items: Omit<Usuario, 'senha'>[] }>;
+  listProfissionaisPendentes(): Promise<{ id: string }[]>;
 }

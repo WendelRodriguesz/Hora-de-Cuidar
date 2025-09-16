@@ -8,6 +8,8 @@ import { UsuarioLogado } from 'src/common/constants/decorators/usuarioLogado.dec
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { MinRole } from 'src/common/constants/decorators/min-role.decorator';
+import { SincronizarProfissionaisDto } from './dto/sincronizar-profissionais.dto';
+import { ListarProfissionaisQuery } from './dto/listar-profissionais.query';
 
 @Controller('profissionais')
 export class ProfissionalController {
@@ -37,5 +39,25 @@ export class ProfissionalController {
   @Patch('solicitacoes/:id/recusar')
   recusar(@Param('id') id: string, @Body() dto: RecusarSolicitacaoDto, @UsuarioLogado() ator: { id: string; cargo: 'ADMIN' | 'PROFISSIONAL' | 'PACIENTE' }) {
     return this.service.recusar(id, dto, ator);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)   
+  @MinRole('ADMIN')
+  @Post('sincronizar')
+  sincronizar(
+    @Body() dto: SincronizarProfissionaisDto,
+    @UsuarioLogado() actor: { id: string; cargo: 'ADMIN' | 'PROFISSIONAL' | 'PACIENTE' },
+  ) {
+    return this.service.sincronizarProfissionais(dto, actor);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @MinRole('PROFISSIONAL')
+  @Get()
+  listarProfissionais(
+    @UsuarioLogado() actor: { id: string; cargo: 'ADMIN'|'PROFISSIONAL'|'PACIENTE' },
+    @Query() q: ListarProfissionaisQuery,
+  ) {
+    return this.service.listar(actor, q);
   }
 }
