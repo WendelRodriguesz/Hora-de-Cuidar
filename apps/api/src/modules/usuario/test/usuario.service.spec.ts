@@ -107,7 +107,7 @@ describe('UsuarioService', () => {
     });
 
     it('findByCpf: retorna se deletado com includeDeleted=true', async () => {
-      const deleted = { ...base, cpf: '123', deleted_at: new Date() };
+     const deleted = { ...base, cpf: '123', cargo: Cargo.PACIENTE, deleted_at: new Date() };
       repo.findUnique.mockResolvedValueOnce(deleted);
 
       await expect(service.findByCpf(PAC, deleted.cpf, true)).resolves.toEqual(
